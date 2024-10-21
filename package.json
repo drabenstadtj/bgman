@@ -1,0 +1,26 @@
+{
+  "name": "bgman",
+  "version": "1.0.0",
+  "description": "BGMan is a simple Discord bot that helps users manage their board game collections and wishlists. With intuitive commands, users can easily add or remove games, view their collection, and manage their wishlist in any Discord server.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node .",
+    "dev": "nodemon index.js",
+    "deploy-commands": "node deploy-commands.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "discord.js": "^14.16.3",
+    "sequelize": "^6.37.4",
+    "sqlite3": "^5.1.7",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.7"
+  }
+}

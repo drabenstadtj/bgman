@@ -1,0 +1,45 @@
+# BGMan - Board Game Collection Manager Bot
+
+BGMan is a simple Discord bot that helps users manage their board game collections and wishlists. With intuitive commands, users can easily add or remove games, view their collection, and manage their wishlist in any Discord server.
+
+## Features
+
+- Add games to your personal collection.
+- Remove games from your collection.
+- Manage a wishlist of games you want.
+- View your current list of owned games and wishlist.
+
+## Commands
+
+- `!bg add <game_name>` - Add a game to your collection.
+- `!bg remove <game_name>` - Remove a game from your collection.
+- `!bg list` - View your list of owned games.
+- `!bg want <game_name>` - Add a game to your wishlist.
+
+## How to Use
+
+1. Invite BGMan to your server.
+2. Use the simple commands to start managing your game collection and wishlist.
+3. Share and organize your games easily with your friends and community!
+
+## Example Usage
+
+```
+!bg add Catan
+!bg list
+!bg want Scythe
+!bg remove Monopoly
+```
+
+## Installation
+
+To add BGMan to your server:
+
+1. Clone or download this repository.
+2. Install the required dependencies: `npm install` or `pip install` (depending on the platform).
+3. Set up your bot token in the environment variables.
+4. Run the bot: `node bot.js` or `python bot.py` (depending on the platform).
+
+---
+
+Feel free to modify it to fit your bot’s setup!
