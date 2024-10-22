@@ -34,7 +34,7 @@ for (const folder of commandFolders) {
 client.once(Events.ClientReady, async readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 
-	await initDB();
+	await db.initDB();
 });
 
 // Interaction listener
