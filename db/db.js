@@ -44,6 +44,18 @@ const addGameToCollection = async (discordId, gameId) => {
     user = await User.create({ discordId });
   }
 
+  // Check if the game is already in the user's collection
+  const gameInCollection = await UserGamesOwned.findOne({
+    where: {
+      UserId: user.id,
+      GameId: gameId,
+    },
+  });
+
+  if (gameInCollection) {
+    return { success: false, message: `Game with ID ${gameId} is already in your collection.` };
+  }
+
   // Find or create the game (store only the ID)
   const [game] = await Game.findOrCreate({
     where: { id: gameId },
@@ -52,8 +64,8 @@ const addGameToCollection = async (discordId, gameId) => {
   // Add the game to the user's collection
   await user.addGamesOwned(game);
 
-  // Return the game ID (no need to return full details from DB)
-  return { id: gameId };
+  // Return a success message
+  return { success: true, message: `Game with ID ${gameId} has been added to the collection of user with ID ${discordId}.` };
 };
 
 // Get a user's collection
@@ -66,17 +78,35 @@ const getUserCollection = async (discordId) => {
 };
 
 // Add a game to a user's wishlist
-const addToWishlist = async (discordId, gameId) => {
+const addGameToWishlist = async (discordId, gameId) => {
+  // Find or create the user
   let user = await User.findOne({ where: { discordId } });
   if (!user) {
     user = await User.create({ discordId });
   }
 
+  // Check if the game is already in the user's wishlist
+  const gameInWishlist = await UserWishlist.findOne({
+    where: {
+      UserId: user.id,
+      GameId: gameId,
+    },
+  });
+
+  if (gameInWishlist) {
+    return { success: false, message: `Game with ID ${gameId} is already in your wishlist.` };
+  }
+
+  // Find or create the game (store only the ID)
   const [game] = await Game.findOrCreate({
     where: { id: gameId },
   });
 
+  // Add the game to the user's wishlist
   await user.addWishlist(game);
+
+  // Return a success message
+  return { success: true, message: `Game with ID ${gameId} has been added to the wishlist of user with ID ${discordId}.` };
 };
 
 // Get a user's wishlist
@@ -92,6 +122,6 @@ module.exports = {
   initDB,
   addGameToCollection,
   getUserCollection,
-  addToWishlist,
+  addGameToWishlist,
   getUserWishlist,
 };

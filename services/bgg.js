@@ -24,15 +24,77 @@ const searchGame = async (query) => {
   const response = await axios.get(url);
   const parsedData = await parseXML(response.data);
 
-  // Return the list of games found (with name and ID)
-  const games = parsedData.items.item.map((game) => ({
-    id: game.$.id,
-    name: game.name.$.value,
-    yearpublished: game.yearpublished ? game.yearpublished.$.value : "Unknown",
-  }));
+  // If no games are found, return an empty array
+  if (!parsedData.items || !parsedData.items.item) {
+    return [];
+  }
 
-  return games;
+  // Return the list of games found (with name and ID)
+  const games = parsedData.items.item
+    .map((game) => ({
+      id: game.$.id,
+      name: game.name.$.value,
+      yearpublished: game.yearpublished
+        ? game.yearpublished.$.value
+        : "Unknown",
+    }));
+
+  // Calculate the weight for each game and sort by weight
+  const gamesWithWeights = await Promise.all(
+    games.map(async (game) => {
+      const weight = await getGameWeight(game.id); // Fetch weight using getGameStats
+      return {
+        ...game, // Keep existing game properties
+        weight: weight || 0, // Assign the weight, default to 0 if no weight found
+      };
+    })
+  );
+
+  // Sort the games by weight in descending order
+  gamesWithWeights.sort((a, b) => b.weight - a.weight);
+  
+  //return the top 10 results
+  return gamesWithWeights.slice(0,10).reverse();
 };
+
+const getGameWeight = async (gameId) => {
+  try {
+    const url = `${BASE_URL}/thing?id=${gameId}&stats=1`;
+    const response = await axios.get(url);
+
+    // Parse the XML response
+    const parsedData = await parseXML(response.data);
+
+    // Check if the parsed data has the item and statistics
+    if (parsedData.items && parsedData.items.item) {
+      const game = parsedData.items.item;
+
+      // Extract the statistics section
+      if (game.statistics && game.statistics.ratings) {
+        const stats = game.statistics.ratings;
+
+        // Extract usersrated and average rating values
+        const usersRated = parseFloat(stats.usersrated.$.value);
+        const averageRating = parseFloat(stats.average.$.value);
+
+        // Calculate the product of usersrated and average rating
+        const weight = usersRated * averageRating;
+
+        return weight; // Return the calculated weight
+      } else {
+        console.log(`No statistics available for game ID: ${gameId}`);
+        return null;
+      }
+    } else {
+      console.log(`No game data found for game ID: ${gameId}`);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching stats for game ID: ${gameId}`, error);
+    return null;
+  }
+};
+
 
 const getGameDetails = async (gameId) => {
   const url = `${BASE_URL}/thing?id=${gameId}&stats=1`;
