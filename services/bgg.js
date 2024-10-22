@@ -72,15 +72,30 @@ const getGameDetails = async (gameId) => {
     name = game.name.$.value;
   }
 
+  // Get the link (you can construct a link based on the game ID)
+  const link = `https://boardgamegeek.com/boardgame/${gameId}`;
+
+  // clean html character codes
+  game.description = game.description
+    .replace(/&#10;/g, "\n") // Replaces &#10; with newline
+    .replace(/&rsquo;/g, "'") // Replace right single quote
+    .replace(/&ldquo;/g, '"') // Replace left double quote
+    .replace(/&rdquo;/g, '"') // Replace right double quote
+    .replace(/&amp;/g, "&");
+
+  // Return the game details
   return {
     id: game?.$?.id || gameId,
     name: name,
+    link: link, // Add link to the return object
+    description: game?.description || "No description available", // Add description
     yearpublished: game?.yearpublished?.$?.value || "Unknown Year",
     minplayers: game?.minplayers?.$?.value || "Unknown",
     maxplayers: game?.maxplayers?.$?.value || "Unknown",
     playingtime: game?.playingtime?.$?.value || "Unknown",
     average_rating: game?.statistics?.ratings?.average?.$?.value || "N/A",
     rank: game?.statistics?.ratings?.ranks?.rank[0]?.$.value || "N/A",
+    image: game?.image || null, // Add image if available
   };
 };
 
