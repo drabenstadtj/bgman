@@ -38,34 +38,122 @@ const initDB = async () => {
 
 // Add a game to a user's collection
 const addGameToCollection = async (discordId, gameId) => {
-  // Find or create the user
-  let user = await User.findOne({ where: { discordId } });
-  if (!user) {
-    user = await User.create({ discordId });
+  try {
+    // Find or create the user
+    let user = await User.findOne({ where: { discordId } });
+    if (!user) {
+      user = await User.create({ discordId });
+    }
+
+    // Check if the game is already in the user's collection
+    const gameInCollection = await UserGamesOwned.findOne({
+      where: {
+        UserId: user.id,
+        GameId: gameId,
+      },
+    });
+
+    if (gameInCollection) {
+      console.error(`Game with ID ${gameId} is already in user ${discordId}'s collection.`); // Log the detailed error
+      return {
+        success: false,
+        message: "This game is already in your collection.",  // User-friendly message
+      };
+    }
+
+    // Find or create the game (store only the ID)
+    const [game] = await Game.findOrCreate({
+      where: { id: gameId },
+    });
+
+    // Add the game to the user's collection
+    await user.addGamesOwned(game);
+
+    // Return a success message
+    return {
+      success: true,
+      message: "The game has been added to your collection.",
+    };
+  } catch (error) {
+    // Log unexpected errors
+    console.error(`Error adding game with ID ${gameId} to user ${discordId}'s collection: ${error.message}`);
+    return {
+      success: false,
+      message: "An error occurred while adding the game. Please try again later.",
+    };
   }
+};
 
-  // Check if the game is already in the user's collection
-  const gameInCollection = await UserGamesOwned.findOne({
-    where: {
-      UserId: user.id,
-      GameId: gameId,
-    },
-  });
+// Remove a game from a user's collection
+const removeGameFromCollection = async (discordId, gameId) => {
+  try {
+    // Find the user
+    let user = await User.findOne({ where: { discordId } });
+    if (!user) {
+      console.error(`User with ID ${discordId} does not exist.`); // Log the detailed error
+      return { success: false, message: "User does not exist." };  // User-friendly message
+    }
 
-  if (gameInCollection) {
-    return { success: false, message: `Game with ID ${gameId} is already in your collection.` };
+    // Check if the game is in the user's collection
+    const gameInCollection = await UserGamesOwned.findOne({
+      where: {
+        UserId: user.id,
+        GameId: gameId,
+      },
+    });
+
+    // If the game is not in the collection
+    if (!gameInCollection) {
+      console.error(`Game with ID ${gameId} is not in user ${discordId}'s collection.`); // Log detailed error
+      return { success: false, message: "The specified game is not in your collection." };  // User-friendly message
+    }
+
+    // Remove the game from the user's collection
+    await gameInCollection.destroy();  // This removes the record from the UserGamesOwned table
+
+    // Return success message
+    return { success: true, message: "The game has been removed from your collection." };
+  } catch (error) {
+    // Log any unexpected errors for debugging
+    console.error(`Error while removing game from collection: ${error.message}`);
+    return { success: false, message: "An error occurred while removing the game. Please try again later." };
   }
+};
 
-  // Find or create the game (store only the ID)
-  const [game] = await Game.findOrCreate({
-    where: { id: gameId },
-  });
+// Remove a game from a user's wishlist
+const removeGameFromWishlist = async (discordId, gameId) => {
+  try {
+    // Find the user
+    let user = await User.findOne({ where: { discordId } });
+    if (!user) {
+      console.error(`User with ID ${discordId} does not exist.`); // Log the detailed error
+      return { success: false, message: "User does not exist." };  // User-friendly message
+    }
 
-  // Add the game to the user's collection
-  await user.addGamesOwned(game);
+    // Check if the game is in the user's wishlist
+    const gameInWishlist = await UserGamesOwned.findOne({
+      where: {
+        UserId: user.id,
+        GameId: gameId,
+      },
+    });
 
-  // Return a success message
-  return { success: true, message: `Game with ID ${gameId} has been added to the collection of user with ID ${discordId}.` };
+    // If the game is not in the wishlist
+    if (!gameInWishlist) {
+      console.error(`Game with ID ${gameId} is not in user ${discordId}'s wishlist.`); // Log detailed error
+      return { success: false, message: "The specified game is not in your wishlist." };  // User-friendly message
+    }
+
+    // Remove the game from the user's wishlist
+    await gameInWishlist.destroy();  // This removes the record from the UserGamesOwned table
+
+    // Return success message
+    return { success: true, message: "The game has been removed from your wishlist." };
+  } catch (error) {
+    // Log any unexpected errors for debugging
+    console.error(`Error while removing game from wishlist: ${error.message}`);
+    return { success: false, message: "An error occurred while removing the game. Please try again later." };
+  }
 };
 
 // Get a user's collection
@@ -79,34 +167,50 @@ const getUserCollection = async (discordId) => {
 
 // Add a game to a user's wishlist
 const addGameToWishlist = async (discordId, gameId) => {
-  // Find or create the user
-  let user = await User.findOne({ where: { discordId } });
-  if (!user) {
-    user = await User.create({ discordId });
+  try {
+    // Find or create the user
+    let user = await User.findOne({ where: { discordId } });
+    if (!user) {
+      user = await User.create({ discordId });
+    }
+
+    // Check if the game is already in the user's wishlist
+    const gameInWishlist = await UserWishlist.findOne({
+      where: {
+        UserId: user.id,
+        GameId: gameId,
+      },
+    });
+
+    if (gameInWishlist) {
+      console.error(`Game with ID ${gameId} is already in user ${discordId}'s wishlist.`); // Log the detailed error
+      return {
+        success: false,
+        message: "This game is already in your wishlist.",  // User-friendly message
+      };
+    }
+
+    // Find or create the game (store only the ID)
+    const [game] = await Game.findOrCreate({
+      where: { id: gameId },
+    });
+
+    // Add the game to the user's wishlist
+    await user.addWishlist(game);
+
+    // Return a success message
+    return {
+      success: true,
+      message: "The game has been added to your wishlist.",
+    };
+  } catch (error) {
+    // Log unexpected errors
+    console.error(`Error adding game with ID ${gameId} to user ${discordId}'s wishlist: ${error.message}`);
+    return {
+      success: false,
+      message: "An error occurred while adding the game. Please try again later.",
+    };
   }
-
-  // Check if the game is already in the user's wishlist
-  const gameInWishlist = await UserWishlist.findOne({
-    where: {
-      UserId: user.id,
-      GameId: gameId,
-    },
-  });
-
-  if (gameInWishlist) {
-    return { success: false, message: `Game with ID ${gameId} is already in your wishlist.` };
-  }
-
-  // Find or create the game (store only the ID)
-  const [game] = await Game.findOrCreate({
-    where: { id: gameId },
-  });
-
-  // Add the game to the user's wishlist
-  await user.addWishlist(game);
-
-  // Return a success message
-  return { success: true, message: `Game with ID ${gameId} has been added to the wishlist of user with ID ${discordId}.` };
 };
 
 // Get a user's wishlist
@@ -121,7 +225,9 @@ const getUserWishlist = async (discordId) => {
 module.exports = {
   initDB,
   addGameToCollection,
+  removeGameFromCollection,
   getUserCollection,
   addGameToWishlist,
+  removeGameFromWishlist,
   getUserWishlist,
 };

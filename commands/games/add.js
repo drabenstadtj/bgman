@@ -91,11 +91,11 @@ module.exports = {
         });
       } else {
         await i.update({
-            content: `${selectedGameName} is already in your ${
-              list === "col" ? "Collection" : "Wishlist"
-            }.`,
-            components: [],
-          });
+          content: `${selectedGameName} is already in your ${
+            list === "col" ? "Collection" : "Wishlist"
+          }.`,
+          components: [],
+        });
       }
     });
 
